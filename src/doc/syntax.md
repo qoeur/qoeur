@@ -1,4 +1,4 @@
-## qoeur compiler programming: yntax
+## qoeur compiler programming: syntax
 
 defining a relevant syntax that makes semantically meaningful is not easy. many programming language designers neglect these aspects completely. in general, a syntax should be simple, consistent, intuitive and flexible (a bit like legos).
 
