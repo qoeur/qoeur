@@ -254,6 +254,16 @@ set Vec2 for Point {
 goto \ok
 ```
 
+### macros
+
+the `$..` token for macro declaration
+
+```
+$.. token {
+  # do something
+}
+```
+
 ### annotations
 
 **declaration type**
