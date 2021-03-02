@@ -10,8 +10,18 @@ pub trait Pos {
   fn zero() -> Self;
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
-#[derive(PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(
+  Debug,
+  Clone,
+  Copy,
+  Eq,
+  PartialEq,
+  Hash,
+  PartialOrd,
+  Ord,
+  Serialize,
+  Deserialize,
+)]
 pub struct PosIndex(pub RawIndex);
 
 impl Pos for PosIndex {
