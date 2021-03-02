@@ -15,3 +15,4 @@ doctest = false
 
 # use crates prefixed by `qoeurcp_` only
 [dependencies]
+qoeurcp_tokenizer = { path = "../qoeurcp_tokenizer" }
