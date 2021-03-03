@@ -96,7 +96,7 @@ symbols! {
     Real,
     Int,
     Str,
-    Char, 
+    Char,
   }
 }
 
