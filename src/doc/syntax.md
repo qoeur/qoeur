@@ -229,6 +229,16 @@ set Vec2 for Point {
 }
 ```
 
+
+### enum
+
+```
+enum Vec2 {
+  BasicEnum,
+  Struct { .x: int },
+}
+```
+
 ### array
 
 ```
