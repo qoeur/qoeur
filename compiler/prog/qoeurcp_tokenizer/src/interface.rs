@@ -84,13 +84,6 @@ pub enum IntBase {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum IntSuffix {
-  Int,
-  Long,
-  Byte,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum LitKind {
   Real(String),
   Int(String),
