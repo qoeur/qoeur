@@ -1,12 +1,12 @@
-use super::interface::PosIndex;
+use super::interface::{ColumnIndex, LineIndex};
 
 use std::cmp;
 use std::fmt;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Loc {
-  pub line: PosIndex,
-  pub column: PosIndex,
+  pub line: LineIndex,
+  pub column: ColumnIndex,
 }
 
 impl fmt::Display for Loc {
@@ -34,12 +34,12 @@ impl cmp::Ord for Loc {
 }
 
 impl Loc {
-  pub fn new(line: PosIndex, column: PosIndex) -> Loc {
+  pub fn new(line: LineIndex, column: ColumnIndex) -> Loc {
     Self { line, column }
   }
 
   pub fn zero() -> Loc {
-    Self::new(PosIndex(0), PosIndex(0))
+    Self::new(LineIndex(0), ColumnIndex(0))
   }
 
   pub fn text(&self) -> String {

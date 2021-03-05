@@ -13,6 +13,9 @@ mod span;
 #[cfg(test)]
 mod test;
 
-pub use self::interface::{Pos, PosIndex};
+pub use self::interface::{
+  ColumnIndex, ColumnOffset, LineIndex, LineOffset, RawIndex, RawOffset,
+};
+
 pub use self::loc::Loc;
 pub use self::span::Span;

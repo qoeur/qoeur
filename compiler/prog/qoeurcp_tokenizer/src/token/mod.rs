@@ -1,10 +1,17 @@
-pub use super::interface::TokenKind;
+mod interface;
+mod token_printer;
+mod token_queue;
+
+pub use self::interface::{
+  BinOpKind, LitKind, NumberBase, TokenKind, TokenSink, UnOpKind,
+};
+pub use self::token_printer::TokenPrinter;
+pub use self::token_queue::TokenQueue;
 
 use qoeurcp_span::Span;
 
 use std::fmt;
 
-#[allow(dead_code)]
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Token {
   pub kind: TokenKind,
@@ -18,7 +25,6 @@ impl fmt::Display for Token {
 }
 
 impl Token {
-  #[allow(dead_code)]
   pub fn new(kind: TokenKind, span: Span) -> Token {
     Self { kind, span }
   }

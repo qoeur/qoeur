@@ -1,3 +1,5 @@
+use qoeurcp::tokenizer::tokenfile;
+
 fn main() {
-  println!("Hello, world!");
+  let _ = tokenfile("data/code/minimal.q5");
 }

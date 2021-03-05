@@ -8,6 +8,6 @@ pub enum TokenizerState {
   Number,
   Op,
   Quiescent,
-  StartLine,
+  Start,
   Str,
 }

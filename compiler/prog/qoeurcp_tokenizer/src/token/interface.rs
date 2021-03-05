@@ -1,16 +1,26 @@
 #![allow(dead_code)]
 
 pub use self::BinOpKind::*;
-pub use self::IntBase::*;
 pub use self::LitKind::*;
+pub use self::NumberBase::*;
 pub use self::TokenKind::*;
 pub use self::UnOpKind::*;
 
-use super::token::Token;
+use super::Token;
 
+use std::borrow::Cow;
 use std::fmt;
 
 macro symbols {
+  { $type:tt { $($kind:ident,)* } } => {
+    impl std::fmt::Display for $type {
+      fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match &self {
+          $($kind(ref value) => write!(f, "{}", *value),)*
+        }
+      }
+    }
+  },
   { $type:tt { $($kind:ident: $value:expr,)* } } => {
     impl std::fmt::Display for $type {
       fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -20,15 +30,6 @@ macro symbols {
       }
     }
   },
-  { $type:tt { $($kind:ident,)* } } => {
-    impl std::fmt::Display for $type {
-      fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match &self {
-          $($kind(ref value) => write!(f, "{}", *value),)*
-        }
-      }
-    }
-  }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -77,10 +78,11 @@ symbols! {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum IntBase {
-  Bin,
-  Dec,
-  Hex,
+pub enum NumberBase {
+  Integer,
+  Binary,
+  Decimal,
+  Hexadecimal,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -166,6 +168,8 @@ pub enum TokenKind {
   Val,
   Void,
   While,
+  Unknown,
+  ParseError(Cow<'static, str>),
 }
 
 impl fmt::Display for TokenKind {
@@ -175,6 +179,45 @@ impl fmt::Display for TokenKind {
 }
 
 impl TokenKind {
+  pub fn keyword(name: &str) -> TokenKind {
+    match name {
+      "fun" => Self::Fun,
+      "val" => Self::Val,
+      _ => Self::Ident(name.into()),
+    }
+  }
+
+  pub fn glue(symbol: &str) -> TokenKind {
+    match symbol {
+      "+" => Self::BinOp(BinOpKind::Add),
+      "-" => Self::BinOp(BinOpKind::Sub),
+      "*" => Self::BinOp(BinOpKind::Mul),
+      "/" => Self::BinOp(BinOpKind::Div),
+      "%" => Self::BinOp(BinOpKind::Mod),
+      "<" => Self::BinOp(BinOpKind::Lt),
+      ">" => Self::BinOp(BinOpKind::Gt),
+      "<=" => Self::BinOp(BinOpKind::Le),
+      ">=" => Self::BinOp(BinOpKind::Ge),
+      "=" => Self::AssignOp(BinOpKind::Eq),
+      "+=" => Self::AssignOp(BinOpKind::Eq),
+      "-=" => Self::AssignOp(BinOpKind::Sub),
+      "*=" => Self::AssignOp(BinOpKind::Mul),
+      "/=" => Self::AssignOp(BinOpKind::Div),
+      "==" => Self::BinOp(BinOpKind::EqEq),
+      "!" => Self::UnOp(UnOpKind::Not),
+      "!=" => Self::BinOp(BinOpKind::Ne),
+      "&&" => Self::BinOp(BinOpKind::And),
+      "||" => Self::BinOp(BinOpKind::Or),
+      "->" => Self::Arrow,
+      "=>" => Self::ArrowFat,
+      ":" => Self::Colon,
+      "::" => Self::ColonColon,
+      "|" => Self::BinOp(BinOpKind::Or),
+      "." => Self::BinOp(BinOpKind::Dot),
+      _ => Self::Unknown,
+    }
+  }
+
   pub fn text(&self) -> String {
     match *self {
       Self::EOF => format!("EOF"),
@@ -235,12 +278,14 @@ impl TokenKind {
       Self::Val => format!("val"),
       Self::Void => format!("void"),
       Self::While => format!("while"),
+      Self::Unknown => format!("UNKNOWN"),
       Self::AssignOp(ref kind) => format!("<assign: `{}`>", kind),
       Self::BinOp(ref kind) => format!("<binop: `{}`>", kind),
       Self::Ident(ref ident) => format!("<ident: `{}`>", ident),
       Self::Indent(ref indent) => format!("<indent: `{}`>", indent),
       Self::Lit(ref lit) => format!("<lit: `{}`>", lit),
       Self::UnOp(ref unop) => format!("<unop: `{}`>", unop),
+      Self::ParseError(ref error) => format!("{}", error),
     }
   }
 }

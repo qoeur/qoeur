@@ -31,7 +31,10 @@ false: bool
 true: bool
 
 42: int # `uint`, `s32`, `u32`, `s64`, `u64`
-1.0: real # `r32`, `r64`
+
+# note: `float` is the more appropriate word for  but the design of
+# the `real` keyword looks nice so.. we will see later
+1.0: real # `r32`, `r64` 
 
 'a': char
 "abc": str
