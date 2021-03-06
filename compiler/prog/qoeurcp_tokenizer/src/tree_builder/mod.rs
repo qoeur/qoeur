@@ -1,15 +1,33 @@
-pub use super::token::interface::TreeSink;
+mod interface;
+mod phase;
 
-use crate::state::State;
+pub use self::interface::{TreeBuilderStep, TreeSink};
+pub use self::phase::{Phase, ProcessResult};
+
+use crate::token::{Token, TokenSink};
 
 use std::collections::VecDeque;
 
 pub struct TreeBuilder<Handle, Sink> {
-  sink: Sink,
-  handle: Handle,
-  next_tokenizer_state: Option<State>,
   current_elmt: Option<Handle>,
-  phase: State,
+  handle: Handle,
+  next_tokenizer_state: Option<Phase>,
+  open_nodes: Vec<Handle>,
+  phase: Phase,
+  sink: Sink,
+}
+
+impl<Handle, Sink> TokenSink for TreeBuilder<Handle, Sink>
+where
+  Handle: Clone,
+  Sink: TreeSink<Handle=Handle>,
+{
+  fn end(&mut self) {}
+  fn print(&self, _level: usize) {}
+
+  fn process_token(&mut self, token: Token) {
+    self.process_to_completion(token);
+  }
 }
 
 impl<Handle, Sink> TreeBuilder<Handle, Sink>
@@ -18,14 +36,14 @@ where
   Sink: TreeSink<Handle=Handle>,
 {
   pub fn new(mut sink: Sink) -> TreeBuilder<Handle, Sink> {
-    let handle = sink.get_document();
+    let handle = sink.get_program();
 
     Self {
-      curr_elem: None,
+      current_elmt: None,
       handle: handle,
       next_tokenizer_state: None,
-      open_elems: vec!(),
-      phase: State::StartLine,
+      open_nodes: vec![],
+      phase: Phase::StartPhase,
       sink: sink,
     }
   }
@@ -49,14 +67,24 @@ where
       let phase = self.phase;
 
       match self.step(phase, token) {
-        State::DONE => {
-          token = unwrap_or_return!(more_tokens.pop_front(), ());
+        ProcessResult::Done => {
+          token = mac::unwrap_or_return!(more_tokens.pop_front(), ());
         }
-        XReprocess(m, t) => {
+        ProcessResult::Reprocess(m, t) => {
           self.phase = m;
           token = t;
         }
       }
     }
+  }
+}
+
+impl<Handle, Sink> TreeBuilderStep
+    for super::TreeBuilder<Handle, Sink>
+    where Handle: Clone,
+          Sink: TreeSink<Handle=Handle>,
+{
+  fn step(&mut self, _mode: Phase, _token: Token) -> ProcessResult {
+    ProcessResult::Done
   }
 }
