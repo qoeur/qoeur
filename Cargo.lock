@@ -53,6 +53,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "qoeurcp_ast"
+version = "0.0.0"
+dependencies = [
+ "qoeurcp_span",
+ "serde",
+ "serde_derive",
+ "tendril",
+]
+
+[[package]]
 name = "qoeurcp_span"
 version = "0.0.0"
 dependencies = [
@@ -61,15 +71,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "qoeurcp_timer"
+version = "0.0.0"
+dependencies = [
+ "time",
+]
+
+[[package]]
 name = "qoeurcp_tokenizer"
 version = "0.0.0"
 dependencies = [
  "mac 0.0.2",
+ "qoeurcp_ast",
  "qoeurcp_span",
+ "qoeurcp_timer",
  "serde",
  "serde_derive",
  "tendril",
- "time",
  "unicode-xid",
 ]
 
