@@ -15,9 +15,10 @@ doctest = false
 
 [dependencies]
 qoeurcp_span = { path = "../qoeurcp_span" }
+qoeurcp_ast = { path =  "../qoeurcp_ast" }
+qoeurcp_timer = { path =  "../qoeurcp_timer" }
 mac = "0.0.2"
 serde = { version = "1.0", features = ["rc"] }
 serde_derive = "1.0"
 tendril = "0.4.2"
-time = "0.1.30"
 unicode-xid = "0.2.1"
