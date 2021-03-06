@@ -6,6 +6,9 @@
 #[macro_use]
 mod macros;
 
+#[cfg(test)]
+mod test;
+
 use time::SteadyTime;
 
 pub struct Timer {}

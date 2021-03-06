@@ -61,7 +61,7 @@ pub fn is_number(ascii: char) -> bool {
 
 pub fn is_operator(ascii: char) -> bool {
   match ascii {
-    '+' | '-' | '*' | '/' | '%' | '>' | '<' | '=' | '!' | '.'  => true,
+    '+' | '-' | '*' | '/' | '%' | '>' | '<' | '=' | '!' | '.' => true,
     _ => false,
   }
 }
