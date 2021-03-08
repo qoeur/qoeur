@@ -2,7 +2,8 @@ use super::buffer_queue::{BufferQueue, FromSet, NotFromSet, SetResult};
 use super::state::TokenizerState;
 
 use super::token::{
-  LitKind, NumberBase, Token, TokenKind, TokenPrinter, TokenQueue, TokenSink,
+  LiteralKind, NumberBase, Token, TokenKind, TokenPrinter, TokenQueue,
+  TokenSink,
 };
 
 use super::util::ascii::*;
@@ -14,6 +15,7 @@ use qoeurcp_span::{
 
 use std::borrow::Cow;
 use std::mem;
+use std::path::Path;
 
 use tendril::StrTendril;
 
@@ -45,8 +47,8 @@ where
   tokenizer.unwrap()
 }
 
-pub fn tokenfile(source: &str) -> Result<TokenQueue, String> {
-  let path = std::path::Path::new(source);
+pub fn tokenize(source: &str) -> Result<TokenQueue, String> {
+  let path = Path::new(source);
 
   let f = match std::fs::read_to_string(&path) {
     Err(_) => None,
@@ -115,11 +117,14 @@ pub struct Tokenizer<Sink> {
 
 impl<Sink: TokenSink> Tokenizer<Sink> {
   pub fn new(sink: Sink, opts: TokenizerOpts) -> Tokenizer<Sink> {
-    let state = *opts.initial_state.as_ref().unwrap_or(&TokenizerState::Start);
+    let state = *opts
+      .initial_state
+      .as_ref()
+      .unwrap_or(&TokenizerState::Start);
 
     Self {
       at_eof: false,
-      current_base_number: NumberBase::Integer,
+      current_base_number: NumberBase::Int,
       current_char: '\0',
       current_token: TokenKind::EOF,
       data: String::new(),
@@ -146,6 +151,8 @@ impl<Sink: TokenSink> Tokenizer<Sink> {
     self.run();
 
     while self.eof_step() { /* loop */ }
+
+    self.sink.end();
   }
 
   pub fn feed(&mut self, input: StrTendril) {
@@ -165,6 +172,7 @@ impl<Sink: TokenSink> Tokenizer<Sink> {
     self
       .token_queue
       .push_back(Token::new(kind.clone(), span.clone()));
+
     self.sink.process_token(Token::new(kind, span));
   }
 
@@ -195,10 +203,11 @@ impl<Sink: TokenSink> Tokenizer<Sink> {
 
   fn emit_eof(&mut self) {
     let span = self.current_span();
-    self.process_token(Token::new(TokenKind::EOF, span));
+    self.add(TokenKind::EOF, span);
   }
 
   fn eof_step(&mut self) -> bool {
+    self.emit_eof(); // TODO: tmp
     match self.state {
       TokenizerState::Quiescent => {
         self.emit_eof();
@@ -302,9 +311,14 @@ impl<Sink: TokenSink> Tokenizer<Sink> {
   }
 
   fn start_newline(&mut self) {
-    self.state = TokenizerState::Start;
+    if self.at_eof {
+      self.state = TokenizerState::Quiescent;
+    } else {
+      self.state = TokenizerState::Start;
+      self.loc.line += LineOffset(1);
+    }
+
     self.indent_level = 0;
-    self.loc.line += LineOffset(1);
   }
 
   fn step(&mut self) -> bool {
@@ -350,10 +364,16 @@ impl<Sink: TokenSink> Tokenizer<Sink> {
           }
           '#' => {
             self.state = TokenizerState::Quiescent;
+            let span = self.current_span();
+
+            self.add(TokenKind::Comma, span);
             return true;
           }
           ',' => {
             self.state = TokenizerState::Quiescent;
+            let span = self.current_span();
+
+            self.add(TokenKind::Comma, span);
             return true;
           }
           '(' => {
@@ -406,11 +426,21 @@ impl<Sink: TokenSink> Tokenizer<Sink> {
             return true;
           }
           ':' => {
-            self.state = TokenizerState::Quiescent;
-            let span = self.current_span();
+            if self.peek() == Some(':') {
+              self.state = TokenizerState::Quiescent;
+              let span = self.current_span();
+              let kind = TokenKind::glue("::");
 
-            self.add(TokenKind::Colon, span);
-            return true;
+              self.input_buffers.next();
+              self.add(kind, span);
+              return true;
+            } else {
+              self.state = TokenizerState::Quiescent;
+              let span = self.current_span();
+
+              self.add(TokenKind::Colon, span);
+              return true;
+            }
           }
           ';' => {
             self.state = TokenizerState::Quiescent;
@@ -486,7 +516,7 @@ impl<Sink: TokenSink> Tokenizer<Sink> {
             let ch = self.data.chars().nth(0).expect("Invalid char literal");
 
             self.data.clear();
-            self.add(TokenKind::Lit(LitKind::Char(ch)), span);
+            self.add(TokenKind::Literal(LiteralKind::CharAscii(ch)), span);
 
             self.escape_code = false;
             self.state = TokenizerState::Quiescent;
@@ -515,21 +545,21 @@ impl<Sink: TokenSink> Tokenizer<Sink> {
       TokenizerState::Number => loop {
         match get_char!(self) {
           c if is_number(c) => {
-            self.current_base_number = NumberBase::Integer;
+            self.current_base_number = NumberBase::Int;
             self.state = TokenizerState::Number;
 
             self.data.push(c);
             return true;
           }
           c if c == '.' => {
-            self.current_base_number = NumberBase::Decimal;
+            self.current_base_number = NumberBase::Dec;
             self.state = TokenizerState::Number;
 
             self.data.push(c);
             return true;
           }
           c if c == 'e' => {
-            self.current_base_number = NumberBase::Hexadecimal;
+            self.current_base_number = NumberBase::Hex;
             self.state = TokenizerState::Number;
 
             self.data.push(c);
@@ -540,11 +570,9 @@ impl<Sink: TokenSink> Tokenizer<Sink> {
             let span = self.current_span();
             let num = mem::replace(&mut self.data, String::new());
 
-            let kind = match self.current_base_number {
-              NumberBase::Integer => TokenKind::Lit(LitKind::Int(num)),
-              NumberBase::Binary => TokenKind::Lit(LitKind::Int(num)),
-              NumberBase::Decimal => TokenKind::Lit(LitKind::Real(num)),
-              NumberBase::Hexadecimal => TokenKind::Lit(LitKind::Real(num)),
+            let kind = match num.trim().parse::<u64>().is_ok() {
+              true => TokenKind::Literal(LiteralKind::IntNumber(num)),
+              false => TokenKind::Literal(LiteralKind::RealNumber(num)),
             };
 
             self.add(kind, span);
@@ -590,7 +618,7 @@ impl<Sink: TokenSink> Tokenizer<Sink> {
             let mut span = self.current_span();
             span.end.column += ColumnOffset(1);
 
-            self.add(TokenKind::Lit(LitKind::Str(s)), span);
+            self.add(TokenKind::Literal(LiteralKind::StrBuffer(s)), span);
             return true;
           }
           _ => {}

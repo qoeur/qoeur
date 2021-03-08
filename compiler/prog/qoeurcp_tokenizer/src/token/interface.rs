@@ -1,10 +1,11 @@
 #![allow(dead_code)]
 
-pub use self::BinOpKind::*;
-pub use self::LitKind::*;
+pub use self::BinaryKind::*;
+pub use self::LiteralKind::*;
 pub use self::NumberBase::*;
+pub use self::PrecedenceKind::*;
 pub use self::TokenKind::*;
-pub use self::UnOpKind::*;
+pub use self::UnaryKind::*;
 
 use super::Token;
 
@@ -14,7 +15,7 @@ use std::fmt;
 macro symbols {
   { $type:tt { $($kind:ident,)* } } => {
     impl std::fmt::Display for $type {
-      fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+      fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self {
           $($kind(ref value) => write!(f, "{}", *value),)*
         }
@@ -23,7 +24,7 @@ macro symbols {
   },
   { $type:tt { $($kind:ident: $value:expr,)* } } => {
     impl std::fmt::Display for $type {
-      fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+      fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
           $($kind => write!(f, "{}", $value),)*
         }
@@ -33,7 +34,7 @@ macro symbols {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum BinOpKind {
+pub enum BinaryKind {
   Add,
   Sub,
   Mul,
@@ -55,7 +56,7 @@ pub enum BinOpKind {
 }
 
 symbols! {
-  BinOpKind {
+  BinaryKind {
     Add: "+",
     Sub: "-",
     Mul: "*",
@@ -77,28 +78,40 @@ symbols! {
   }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum NumberBase {
-  Integer,
-  Binary,
-  Decimal,
-  Hexadecimal,
+#[derive(Debug, PartialEq, PartialOrd)]
+pub enum PrecedenceKind {
+  Lowest,
+  Assignement,
+  Conditional,
+  Sum,
+  Exponent,
+  Unary,
+  Calling,
+  Index,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum LitKind {
-  Real(String),
-  Int(String),
-  Str(String),
-  Char(char),
+pub enum NumberBase {
+  Int,
+  Bin,
+  Dec,
+  Hex,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum LiteralKind {
+  RealNumber(String),
+  IntNumber(String),
+  StrBuffer(String),
+  CharAscii(char),
 }
 
 symbols! {
-  LitKind {
-    Real,
-    Int,
-    Str,
-    Char,
+  LiteralKind {
+    RealNumber,
+    IntNumber,
+    StrBuffer,
+    CharAscii,
   }
 }
 
@@ -107,10 +120,10 @@ pub enum TokenKind {
   EOF,
   EOL,
   Ident(String),
-  Lit(LitKind),
-  BinOp(BinOpKind),
-  UnOp(UnOpKind),
-  AssignOp(BinOpKind),
+  Literal(LiteralKind),
+  Binary(BinaryKind),
+  Unary(UnaryKind),
+  AssignOp(BinaryKind),
   Indent(usize),
   OpenBrace,
   CloseBrace,
@@ -173,7 +186,7 @@ pub enum TokenKind {
 }
 
 impl fmt::Display for TokenKind {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{}", self.text())
   }
 }
@@ -182,6 +195,8 @@ impl TokenKind {
   pub fn keyword(name: &str) -> TokenKind {
     match name {
       "fun" => Self::Fun,
+      "mut" => Self::Mut,
+      "use" => Self::Use,
       "val" => Self::Val,
       _ => Self::Ident(name.into()),
     }
@@ -189,32 +204,47 @@ impl TokenKind {
 
   pub fn glue(symbol: &str) -> TokenKind {
     match symbol {
-      "+" => Self::BinOp(BinOpKind::Add),
-      "-" => Self::BinOp(BinOpKind::Sub),
-      "*" => Self::BinOp(BinOpKind::Mul),
-      "/" => Self::BinOp(BinOpKind::Div),
-      "%" => Self::BinOp(BinOpKind::Mod),
-      "<" => Self::BinOp(BinOpKind::Lt),
-      ">" => Self::BinOp(BinOpKind::Gt),
-      "<=" => Self::BinOp(BinOpKind::Le),
-      ">=" => Self::BinOp(BinOpKind::Ge),
-      "=" => Self::AssignOp(BinOpKind::Eq),
-      "+=" => Self::AssignOp(BinOpKind::Eq),
-      "-=" => Self::AssignOp(BinOpKind::Sub),
-      "*=" => Self::AssignOp(BinOpKind::Mul),
-      "/=" => Self::AssignOp(BinOpKind::Div),
-      "==" => Self::BinOp(BinOpKind::EqEq),
-      "!" => Self::UnOp(UnOpKind::Not),
-      "!=" => Self::BinOp(BinOpKind::Ne),
-      "&&" => Self::BinOp(BinOpKind::And),
-      "||" => Self::BinOp(BinOpKind::Or),
+      "+" => Self::Binary(Add),
+      "-" => Self::Binary(Sub),
+      "*" => Self::Binary(Mul),
+      "/" => Self::Binary(Div),
+      "%" => Self::Binary(Mod),
+      "<" => Self::Binary(Lt),
+      ">" => Self::Binary(Gt),
+      "<=" => Self::Binary(Le),
+      ">=" => Self::Binary(Ge),
+      "=" => Self::AssignOp(Eq),
+      "+=" => Self::AssignOp(Eq),
+      "-=" => Self::AssignOp(Sub),
+      "*=" => Self::AssignOp(Mul),
+      "/=" => Self::AssignOp(Div),
+      "==" => Self::Binary(EqEq),
+      "!" => Self::Unary(UnaryKind::Not),
+      "!=" => Self::Binary(Ne),
+      "&&" => Self::Binary(And),
+      "||" => Self::Binary(Or),
       "->" => Self::Arrow,
       "=>" => Self::ArrowFat,
       ":" => Self::Colon,
       "::" => Self::ColonColon,
-      "|" => Self::BinOp(BinOpKind::Or),
-      "." => Self::BinOp(BinOpKind::Dot),
+      "|" => Self::Binary(Or),
+      "." => Self::Binary(Dot),
       _ => Self::Unknown,
+    }
+  }
+
+  pub fn precedence(kind: &TokenKind) -> PrecedenceKind {
+    match kind {
+      Self::Binary(Mul) | Self::Binary(Div) => PrecedenceKind::Exponent,
+      Self::Binary(Add) | Self::Binary(Sub) => PrecedenceKind::Sum,
+      Self::Binary(Lt)
+      | Self::Binary(Le)
+      | Self::Binary(Gt)
+      | Self::Binary(Ge) => PrecedenceKind::Conditional,
+      Self::Binary(Eq) | Self::Binary(Ne) => PrecedenceKind::Assignement,
+      Self::OpenParen => PrecedenceKind::Calling,
+      Self::OpenBracket => PrecedenceKind::Index,
+      _ => PrecedenceKind::Lowest,
     }
   }
 
@@ -279,12 +309,12 @@ impl TokenKind {
       Self::Void => format!("void"),
       Self::While => format!("while"),
       Self::Unknown => format!("UNKNOWN"),
-      Self::AssignOp(ref kind) => format!("<assign: `{}`>", kind),
-      Self::BinOp(ref kind) => format!("<binop: `{}`>", kind),
-      Self::Ident(ref ident) => format!("<ident: `{}`>", ident),
-      Self::Indent(ref indent) => format!("<indent: `{}`>", indent),
-      Self::Lit(ref lit) => format!("<lit: `{}`>", lit),
-      Self::UnOp(ref unop) => format!("<unop: `{}`>", unop),
+      Self::AssignOp(ref kind) => format!("{}", kind),
+      Self::Binary(ref kind) => format!("{}", kind),
+      Self::Ident(ref ident) => format!("{}", ident),
+      Self::Indent(ref indent) => format!("{}", indent),
+      Self::Literal(ref lit) => format!("{}", lit),
+      Self::Unary(ref unop) => format!("{}", unop),
       Self::ParseError(ref error) => format!("{}", error),
     }
   }
@@ -296,14 +326,19 @@ pub trait TokenSink {
   fn process_token(&mut self, token: Token);
 }
 
+pub trait TokenizeResult {
+  type Sink: TokenSink + Default;
+  fn get_result(sink: Self::Sink) -> Self;
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum UnOpKind {
+pub enum UnaryKind {
   Not,
   Neg,
 }
 
 symbols! {
-  UnOpKind {
+  UnaryKind {
     Not: "!",
     Neg: "-",
   }

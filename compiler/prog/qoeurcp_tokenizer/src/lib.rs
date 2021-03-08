@@ -3,15 +3,17 @@
 // the tokenizer try to follow the html5ever parser implementation
 // @see html5ever: https://github.com/servo/html5ever
 
-// tmp
+// TODO: tmp
 #![allow(dead_code)]
-// tmpend
-
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 #![feature(decl_macro)]
 #![recursion_limit = "256"]
 
+#[macro_use]
+extern crate serde_derive;
+
+mod ast;
 mod buffer_queue;
 
 #[macro_use]
@@ -27,54 +29,87 @@ mod tokenizer;
 mod tree_builder;
 mod util;
 
-pub use self::tree_builder::TreeBuilder;
-pub use self::token::{TokenPrinter, TokenQueue, TokenSink};
+pub use self::token::{Token, TokenPrinter, TokenQueue, TokenSink};
 pub use self::tokenizer::{Tokenizer, TokenizerOpts};
+pub use self::tree_builder::{TreeBuilder, TreeSink};
+
+use self::ast::Stmt;
+
+use std::borrow::Cow;
+use std::cell::RefCell;
+use std::ops::Deref;
+use std::rc::Rc;
 
 use tendril::StrTendril;
 
-pub fn tokenfile_program_to<Sink, It>(
-  sink: Sink,
-  input: It,
-  opts: TokenizerOpts,
-) -> Sink
-where
-  Sink: TokenSink,
-  It: IntoIterator<Item = tendril::StrTendril>,
-{
-  let mut tokenizer = Tokenizer::new(sink, opts);
+#[derive(Clone, Debug)]
+pub struct Handle(Rc<RefCell<Vec<Stmt>>>);
 
-  input.into_iter().for_each(|s| tokenizer.feed(s));
-  tokenizer.end();
-  tokenizer.unwrap()
+impl Deref for Handle {
+  type Target = Rc<RefCell<Vec<Stmt>>>;
+  fn deref(&self) -> &Rc<RefCell<Vec<Stmt>>> {
+    &self.0
+  }
 }
 
-pub fn tokenfile(pathname: &str) -> TokenQueue {
-  let path = std::path::Path::new(pathname);
+pub trait ParseResult {
+  type Sink: TreeSink + Default;
+  fn get_result(sink: Self::Sink) -> Self;
+}
 
-  let f = match std::fs::read_to_string(&path) {
-    Err(_) => None,
-    Ok(file) => Some(file),
-  };
+#[derive(Debug)]
+pub struct Tree {
+  pub stmts: Handle,
+}
 
-  match f {
-    None => TokenQueue::new(),
-    Some(file) => {
-      println!("\n{}", file);
-
-      let opts = TokenizerOpts {
-        profile: true,
-        exact_errors: true,
-        ..Default::default()
-      };
-
-      let buffer = StrTendril::from(file);
-      let sink = TokenPrinter::new();
-      let mut tokenizer = Tokenizer::new(sink, opts);
-      let _ = tokenizer.feed(buffer.try_reinterpret().unwrap());
-      let _ = tokenizer.end();
-
-      tokenizer.token_queue
+impl Tree {
+  pub fn new() -> Tree {
+    Self {
+      stmts: Handle(Rc::new(RefCell::new(vec![]))),
     }
   }
+}
+
+impl TreeSink for Tree {
+  type Handle = Handle;
+  fn get_stmts(&mut self) -> Self::Handle {
+    self.stmts.clone()
+  }
+
+  fn parse_error(&mut self, _msg: Cow<'static, str>) {}
+}
+
+pub fn parse(file: &str) -> Tree {
+  // TODO: opts must be use has argument i.e parse(file: &str, opts: TokenizerOpts)
+  let opts = TokenizerOpts {
+    profile: true,
+    exact_errors: true,
+    ..Default::default()
+  };
+
+  let buffer = StrTendril::from(file);
+  let token_parser = Tree::new();
+  let tree_builder = TreeBuilder::new(token_parser);
+  let mut tokenizer = Tokenizer::new(tree_builder, opts);
+  let _ = tokenizer.feed(buffer.try_reinterpret().unwrap());
+  let _ = tokenizer.end();
+
+  tokenizer.unwrap().unwrap()
+}
+
+pub fn tokenize(file: &str) -> TokenQueue {
+  // TODO: opts must be use has argument i.e parse(file: &str, opts: TokenizerOpts)
+  let opts = TokenizerOpts {
+    profile: true,
+    exact_errors: true,
+    ..Default::default()
+  };
+
+  let buffer = StrTendril::from(file);
+  let token_printer = TokenPrinter::new();
+  let mut tokenizer = Tokenizer::new(token_printer, opts);
+  let _ = tokenizer.feed(buffer.try_reinterpret().unwrap());
+  let _ = tokenizer.end();
+
+  tokenizer.token_queue
 }

@@ -16,3 +16,4 @@ test = false
 
 [dependencies]
 qoeurcp = { path = "../../compiler/prog/qoeurcp" }
+tendril = "0.4.2"

@@ -1,12 +1,10 @@
-use super::{LitKind, Token, TokenKind, TokenSink};
+use super::{Token, TokenSink};
 
-pub struct TokenPrinter {
-  tokens: Vec<Token>,
-}
+pub struct TokenPrinter {}
 
 impl TokenPrinter {
   pub fn new() -> TokenPrinter {
-    Self { tokens: vec![] }
+    Self {}
   }
 }
 

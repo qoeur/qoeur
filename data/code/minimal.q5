@@ -1,5 +1,8 @@
+use @std::gl::matrix;
+use @std::math::(sqrt, sin);
+
 fun main = () {
   val x: int = 12345;
-  val x: real = 12.5;
+  mut y: real = 12.5;
   print!("hello, world! 👽");
 }

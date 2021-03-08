@@ -3,8 +3,15 @@ mod token_printer;
 mod token_queue;
 
 pub use self::interface::{
-  BinOpKind, LitKind, NumberBase, TokenKind, TokenSink, UnOpKind,
+  BinaryKind::{self, *},
+  LiteralKind::{self, *},
+  NumberBase::{self, *},
+  PrecedenceKind::{self, *},
+  TokenKind::{self, *},
+  TokenSink,
+  UnaryKind::{self, *},
 };
+
 pub use self::token_printer::TokenPrinter;
 pub use self::token_queue::TokenQueue;
 
@@ -19,7 +26,7 @@ pub struct Token {
 }
 
 impl fmt::Display for Token {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{}", self.text())
   }
 }
@@ -27,6 +34,10 @@ impl fmt::Display for Token {
 impl Token {
   pub fn new(kind: TokenKind, span: Span) -> Token {
     Self { kind, span }
+  }
+
+  pub fn kind(&self) -> TokenKind {
+    self.kind.to_owned()
   }
 
   pub fn text(&self) -> String {

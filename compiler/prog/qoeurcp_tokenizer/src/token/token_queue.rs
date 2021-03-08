@@ -1,4 +1,4 @@
-use super::interface::{BinOpKind, TokenKind};
+use super::interface::{BinaryKind, TokenKind};
 use super::Token;
 
 use qoeurcp_span::{ColumnIndex, LineIndex, Loc, Span};
@@ -9,8 +9,8 @@ pub type CompileResult<T> = Result<T, String>;
 
 #[derive(Clone, Debug)]
 pub struct TokenQueue {
-  tokens: VecDeque<Token>,
-  last_loc: Loc,
+  pub tokens: VecDeque<Token>,
+  pub last_loc: Loc,
 }
 
 impl Iterator for TokenQueue {
@@ -96,10 +96,10 @@ impl TokenQueue {
     Err(format!(""))
   }
 
-  pub fn expect_binary_operator(&mut self) -> CompileResult<BinOpKind> {
+  pub fn expect_binary_operator(&mut self) -> CompileResult<BinaryKind> {
     let token = self.pop()?;
 
-    if let TokenKind::BinOp(op) = token.kind {
+    if let TokenKind::Binary(op) = token.kind {
       return Ok(op);
     }
 
@@ -123,7 +123,7 @@ impl TokenQueue {
   pub fn is_next_binary_operator(&self) -> bool {
     match self.tokens.front() {
       Some(token) => {
-        if let TokenKind::BinOp(_) = token.kind {
+        if let TokenKind::Binary(_) = token.kind {
           return true;
         }
 
@@ -133,7 +133,7 @@ impl TokenQueue {
     }
   }
 
-  pub fn is_next_assign_operator(&self) -> Option<BinOpKind> {
+  pub fn is_next_assign_operator(&self) -> Option<BinaryKind> {
     match self.tokens.front() {
       Some(token) => {
         if let TokenKind::AssignOp(op) = &token.kind {

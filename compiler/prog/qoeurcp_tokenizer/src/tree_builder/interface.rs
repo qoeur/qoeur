@@ -1,16 +1,18 @@
-use super::phase::{Phase, ProcessResult};
-
+use crate::ast::Stmt;
 use crate::token::Token;
 
 use std::borrow::Cow;
 
-pub trait TreeBuilderStep {
-  fn step(&mut self, mode: Phase, token: Token) -> ProcessResult;
+pub trait TreeBuilderPrinter {
+  fn print(&mut self, stmt: Box<Stmt>);
 }
 
 pub trait TreeSink {
   type Handle: Clone;
-
+  fn get_stmts(&mut self) -> Self::Handle;
   fn parse_error(&mut self, msg: Cow<'static, str>);
-  fn get_program(&mut self) -> Self::Handle;
+}
+
+pub trait TreePrinter {
+  fn print(&self, level: usize);
 }

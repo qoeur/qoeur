@@ -9,6 +9,7 @@ pub struct Span {
   pub end: Loc,
 }
 
+// TODO: remove me from
 impl Default for Span {
   fn default() -> Span {
     Self::from_start(Loc::zero())
@@ -43,5 +44,9 @@ impl Span {
 
   pub fn text(&self) -> String {
     format!("{}:{}", self.start, self.end)
+  }
+
+  pub fn zero() -> Span {
+    Self::from_start(Loc::zero())
   }
 }
