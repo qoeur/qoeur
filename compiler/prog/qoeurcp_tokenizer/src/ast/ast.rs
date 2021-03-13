@@ -882,10 +882,19 @@ pub fn make_lit_str_expr(expr: String) -> Box<Expr> {
   box Expr::new(ExprKind::Lit(LitKind::Str(expr)), Span::zero())
 }
 
-pub fn make_loop_for_expr(iterable: Box<Expr>, iterator: Box<Expr>, block: Box<Block>) -> Box<Expr> {
-  box Expr::new(ExprKind::Loop(LoopKind::LoopFor {
-    iterable, iterator, block,
-  }), Span::zero(),)
+pub fn make_loop_for_expr(
+  iterable: Box<Expr>,
+  iterator: Box<Expr>,
+  block: Box<Block>,
+) -> Box<Expr> {
+  box Expr::new(
+    ExprKind::Loop(LoopKind::LoopFor {
+      iterable,
+      iterator,
+      block,
+    }),
+    Span::zero(),
+  )
 }
 
 pub fn make_loop_loop_expr(block: Box<Block>) -> Box<Expr> {

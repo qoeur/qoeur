@@ -1,5 +1,4 @@
 use crate::ast::Stmt;
-use crate::token::Token;
 
 use std::borrow::Cow;
 

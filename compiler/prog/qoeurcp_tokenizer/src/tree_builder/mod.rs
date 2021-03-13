@@ -80,7 +80,8 @@ where
 
     Err(format!(
       "token {:?} expected, but the current token is {:?}!",
-      &kind, &self.first.kind()
+      &kind,
+      &self.first.kind()
     ))
   }
 
@@ -582,7 +583,7 @@ where
   Handle: Clone,
   Sink: TreeSink<Handle = Handle>,
 {
-  fn print(&mut self, stmt: Box<Stmt>) {}
+  fn print(&mut self, _stmt: Box<Stmt>) {}
 }
 
 impl<Handle, Sink> TokenSink for TreeBuilder<Handle, Sink>

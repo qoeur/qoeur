@@ -13,7 +13,7 @@
 #[macro_use]
 extern crate serde_derive;
 
-mod ast;
+pub mod ast;
 mod buffer_queue;
 
 #[macro_use]
