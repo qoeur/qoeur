@@ -1,5 +1,5 @@
 pub mod converter {
-  pub use qoeurcp_converter::{compile, Jit};
+  pub use qoeurcp_converter::compile;
 }
 
 pub mod tokenizer {

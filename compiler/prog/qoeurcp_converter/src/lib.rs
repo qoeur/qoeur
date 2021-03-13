@@ -4,9 +4,18 @@
 #![recursion_limit = "256"]
 
 mod cranelift;
+mod llvm;
 
-pub use self::cranelift::Jit;
+pub use BackendKind::*;
 
-pub fn compile() -> Result<(), String> {
-  Ok(())
+pub enum BackendKind {
+  CraneLift,
+  Llvm,
+}
+
+pub fn compile(mode: BackendKind) -> Result<(), String> {
+  match mode {
+    CraneLift => cranelift::compile(),
+    Llvm => llvm::compile(),
+  }
 }
