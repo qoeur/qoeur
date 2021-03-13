@@ -168,7 +168,6 @@ fn declare_variable(
   var
 }
 
-// TODO: util
 fn declare_variables(
   int: types::Type,
   builder: &mut FunctionBuilder,

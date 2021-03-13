@@ -1,7 +1,7 @@
 use qoeurcp::tokenizer::{parse, tokenize};
 
 fn main() {
-  let pathname = "data/code/minimal.q5";
+  let pathname = "data/code/assignment.q5";
   let path = std::path::Path::new(&pathname);
 
   let f = match std::fs::read_to_string(&path) {
