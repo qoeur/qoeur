@@ -3,8 +3,11 @@
 // the tokenizer try to follow the html5ever parser implementation
 // @see html5ever: https://github.com/servo/html5ever
 
-// TODO: tmp
+// TODO: tmp do
 #![allow(dead_code)]
+#![allow(unused_imports)]
+// end
+
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 #![feature(decl_macro)]
@@ -33,21 +36,19 @@ pub use self::token::{Token, TokenPrinter, TokenQueue, TokenSink};
 pub use self::tokenizer::{Tokenizer, TokenizerOpts};
 pub use self::tree_builder::{TreeBuilder, TreeSink};
 
-use self::ast::Stmt;
+use self::ast::{Ast, Stmt};
 
 use std::borrow::Cow;
-use std::cell::RefCell;
 use std::ops::Deref;
-use std::rc::Rc;
 
 use tendril::StrTendril;
 
 #[derive(Clone, Debug)]
-pub struct Handle(Rc<RefCell<Vec<Stmt>>>);
+pub struct Handle(Vec<Box<Stmt>>);
 
 impl Deref for Handle {
-  type Target = Rc<RefCell<Vec<Stmt>>>;
-  fn deref(&self) -> &Rc<RefCell<Vec<Stmt>>> {
+  type Target = Vec<Box<Stmt>>;
+  fn deref(&self) -> &Vec<Box<Stmt>> {
     &self.0
   }
 }
@@ -59,24 +60,31 @@ pub trait ParseResult {
 
 #[derive(Debug)]
 pub struct Tree {
+  pub ast: Box<Ast>,
   pub stmts: Handle,
 }
 
 impl Tree {
   pub fn new() -> Tree {
     Self {
-      stmts: Handle(Rc::new(RefCell::new(vec![]))),
+      ast: box Ast::new(vec![]),
+      stmts: Handle(vec![]),
     }
   }
 }
 
 impl TreeSink for Tree {
   type Handle = Handle;
+
   fn get_stmts(&mut self) -> Self::Handle {
     self.stmts.clone()
   }
 
   fn parse_error(&mut self, _msg: Cow<'static, str>) {}
+
+  fn ast(&mut self, ast: Box<Ast>) {
+    self.ast = ast;
+  }
 }
 
 pub fn parse(file: &str) -> Tree {

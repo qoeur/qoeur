@@ -365,6 +365,10 @@ impl Fun {
     }
   }
 
+  pub fn name(&self) -> String {
+    self.name.to_owned()
+  }
+
   pub fn text(&self) -> String {
     let args = self
       .args
@@ -518,6 +522,10 @@ impl TreePrinter for Local {
 }
 
 impl Local {
+  pub fn name(&self) -> String {
+    self.name.to_owned()
+  }
+
   pub fn text(&self) -> String {
     let ty = self.ty.text();
     let value = self.value.text();
@@ -587,6 +595,10 @@ impl TreePrinter for Stmt {
 impl Stmt {
   pub fn new(kind: StmtKind, span: Span) -> Stmt {
     Self { kind, span }
+  }
+
+  pub fn kind(&self) -> StmtKind {
+    self.kind.to_owned()
   }
 
   pub fn text(&self) -> String {

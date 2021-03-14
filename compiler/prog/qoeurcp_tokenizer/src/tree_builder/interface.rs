@@ -1,4 +1,4 @@
-use crate::ast::Stmt;
+use crate::ast::{Ast, Stmt};
 
 use std::borrow::Cow;
 
@@ -8,6 +8,8 @@ pub trait TreeBuilderPrinter {
 
 pub trait TreeSink {
   type Handle: Clone;
+
+  fn ast(&mut self, ast: Box<Ast>);
   fn get_stmts(&mut self) -> Self::Handle;
   fn parse_error(&mut self, msg: Cow<'static, str>);
 }

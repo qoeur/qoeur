@@ -41,6 +41,10 @@ where
     }
   }
 
+  pub fn stmts(&self) -> Vec<Box<Stmt>> {
+    self.stmts.to_vec()
+  }
+
   pub fn unwrap(self) -> Sink {
     self.sink
   }
@@ -68,9 +72,9 @@ where
     TokenKind::precedence(&self.token.kind())
   }
 
-  fn emit(&self, ast: Box<Ast>) {
+  fn emit(&mut self, ast: Box<Ast>) {
     println!("{:#?}", ast);
-    // self.sink.ast(box ast);
+    self.sink.ast(ast);
   }
 
   fn expect_first(&mut self, kind: &TokenKind) -> Result<(), String> {

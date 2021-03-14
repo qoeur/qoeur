@@ -1,21 +1,31 @@
+// TODO: tmp do
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+// end
+
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 #![feature(decl_macro)]
 #![recursion_limit = "256"]
 
 mod cranelift;
+mod interface;
 mod llvm;
+mod scope;
 
-pub use BackendKind::*;
+#[cfg(test)]
+mod test;
 
-pub enum BackendKind {
-  CraneLift,
-  Llvm,
-}
+pub use self::interface::BackendKind::{self, *};
 
-pub fn compile(mode: BackendKind) -> Result<(), String> {
+pub fn compile(
+  file_name: &str,
+  input: &str,
+  mode: &BackendKind,
+) -> Result<(), String> {
   match mode {
-    CraneLift => cranelift::compile(),
-    Llvm => llvm::compile(),
+    Cranelift => cranelift::compile(file_name, input),
+    Llvm => llvm::compile(file_name, input),
   }
 }
