@@ -1,7 +1,8 @@
-// @see https://github.com/ucarion/llvm-rust-getting-started
-
+mod interface;
+mod jit;
 mod util;
 
+pub use self::interface::*;
 pub use self::jit::Jit;
 
 use std::process::Command;

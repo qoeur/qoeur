@@ -23,7 +23,7 @@
 * [ ] branches | *`if`, `else if`, `else`*
 * [ ] pattern matching | *`match`*
 * [ ] operator | *unary, binary*
-* [ ] `loops` | *`for`, `for range`, `while`* 
+* [ ] `loops` | *`for`, `for range`, `while`*
 * [ ] `nil` | *not sure yet*
 * [ ] `return` values
 * [ ] `load` | *imports modules*
@@ -73,6 +73,6 @@
 
 ### tools
 
-* [ ] repl | `--interactive`
+* [ ] repl | `--interactive`
 * [ ] qoeur-lab
 * [ ] package manager

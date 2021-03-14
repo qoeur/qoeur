@@ -1,3 +1,4 @@
+use super::interface::*;
 use super::util::cstring;
 
 use qoeurcp_tokenizer::ast::*;
@@ -5,6 +6,7 @@ use qoeurcp_tokenizer::ast::*;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::ffi::CString;
+use std::os::raw::c_uint;
 use std::ptr;
 
 use llvm_sys::core::*;
@@ -42,8 +44,8 @@ impl Jit {
 
       Self {
         context: context,
-        module: module,
         builder: builder,
+        module: module,
         target: RefCell::new(ptr::null_mut()),
         target_machine: RefCell::new(ptr::null_mut()),
         target_data: RefCell::new(ptr::null_mut()),
@@ -54,42 +56,35 @@ impl Jit {
   pub fn codegen(&mut self, stmts: Vec<Box<Stmt>>) {
     unsafe {
       let context = LLVMContextCreate();
-
-      let module =
-        LLVMModuleCreateWithName(b"basics\0".as_ptr() as *const _);
-
+      let module = LLVMModuleCreateWithName(cstring!("basics"));
       let builder = LLVMCreateBuilderInContext(context);
 
-      let int_type = LLVMInt64TypeInContext(context);
-      let fun_ty = LLVMFunctionType(int_type, ptr::null_mut(), 0, 0);
+      let int_ty = LLVMInt64TypeInContext(context);
+      let fun_ty = LLVMFunctionType(int_ty, ptr::null_mut(), 0, 0);
+      let fun = LLVMAddFunction(module, cstring!("main"), fun_ty);
 
-      let fun =
-        LLVMAddFunction(module, b"main\0".as_ptr() as *const _, fun_ty);
+      let entry_name = cstring!("entry");
 
-      let entry_name = CString::new("entry").unwrap();
-
-      let bb =
-        LLVMAppendBasicBlockInContext(context, fun, entry_name.as_ptr());
+      let bb = LLVMAppendBasicBlockInContext(context, fun, entry_name);
 
       LLVMPositionBuilderAtEnd(builder, bb);
 
       let mut names = HashMap::new();
       insert_allocations(context, builder, &mut names, &stmts);
 
-      let int_type = LLVMInt64TypeInContext(context);
-      let zero = LLVMConstInt(int_type, 0, 0);
+      let int_ty = LLVMInt64TypeInContext(context);
+      let zero = LLVMConstInt(int_ty, 0, 0);
 
       let mut ret_value = zero; // return value on empty program
 
       stmts.iter().for_each(|stmt| {
-        ret_value =
-          self.codegen_stmt(context, builder, fun, &mut names, stmt);
+        ret_value = self.codegen_stmt(context, builder, fun, &mut names, stmt);
       });
 
       LLVMBuildRet(builder, ret_value);
 
-      let out_file = CString::new("out/test.ll").unwrap();
-      LLVMPrintModuleToFile(module, out_file.as_ptr(), ptr::null_mut());
+      let out_file = cstring!("out/test.ll");
+      LLVMPrintModuleToFile(module, out_file, ptr::null_mut());
 
       LLVMDisposeBuilder(builder);
       LLVMDisposeModule(module);
@@ -108,7 +103,7 @@ impl Jit {
         let lhs_expr = self.codegen_expr_stmt(lhs);
         let rhs_expr = self.codegen_expr_stmt(rhs);
 
-        make_codegen_binop_add_expr(self.builder, lhs_expr, rhs_expr)
+        make_build_binop_add_value(self.builder, lhs_expr, rhs_expr)
       }
       _ => unimplemented!(),
     }
@@ -131,8 +126,8 @@ impl Jit {
     match kind {
       // LitKind::Bool(ref value) => make_codegen_lit_bool_expr(value),
       // LitKind::Char(ref value) => make_codegen_lit_char_expr(value),
-      LitKind::Real(ref value) => make_codegen_lit_real_expr(self.context, value),
-      LitKind::Int(ref value) => make_codegen_lit_int_expr(self.context, value),
+      LitKind::Real(ref value) => make_const_real_value(self.context, value),
+      LitKind::Int(ref value) => make_const_int_value(self.context, value),
       // LitKind::Str(ref value) => make_codegen_lit_str_expr(value),
       _ => unreachable!(),
     }
@@ -170,88 +165,11 @@ fn insert_allocations(
 
   // for variable_name in variable_names {
   // unsafe {
-  // let int_type = LLVMInt64TypeInContext(context);
+  // let int_ty = LLVMInt64TypeInContext(context);
   // let name = CString::new(variable_name.as_bytes()).unwrap();
-  // let pointer = LLVMBuildAlloca(builder, int_type, name.as_ptr());
+  // let pointer = LLVMBuildAlloca(builder, int_ty, name.as_ptr());
 
   // names.insert(variable_name.to_owned(), pointer);
   // }
   // }
-}
-
-pub fn make_codegen_lit_expr(
-  context: LLVMContextRef,
-  expr: Box<Expr>,
-) -> LLVMValueRef {
-  unsafe {
-    let int_ty = LLVMInt64TypeInContext(context);
-    let int = expr.text().parse().unwrap();
-
-    LLVMConstInt(int_ty, int, 0)
-  }
-}
-
-pub fn make_codegen_binop_add_expr(
-  builder: LLVMBuilderRef,
-  lhs: LLVMValueRef,
-  rhs: LLVMValueRef,
-) -> LLVMValueRef {
-  unsafe {
-    let name = CString::new("addtmp").unwrap();
-    LLVMBuildAdd(builder, lhs, rhs, name.as_ptr())
-  }
-}
-
-pub fn make_codegen_sub_binop_expr(
-  builder: LLVMBuilderRef,
-  lhs: LLVMValueRef,
-  rhs: LLVMValueRef,
-) -> LLVMValueRef {
-  unsafe {
-    let name = CString::new("subtmp").unwrap();
-    LLVMBuildSub(builder, lhs, rhs, name.as_ptr())
-  }
-}
-
-pub fn make_codegen_mul_binop_expr(
-  builder: LLVMBuilderRef,
-  lhs: LLVMValueRef,
-  rhs: LLVMValueRef,
-) -> LLVMValueRef {
-  unsafe {
-    let name = CString::new("multmp").unwrap();
-    LLVMBuildMul(builder, lhs, rhs, name.as_ptr())
-  }
-}
-
-pub fn make_codegen_div_binop_expr(
-  builder: LLVMBuilderRef,
-  lhs: LLVMValueRef,
-  rhs: LLVMValueRef,
-) -> LLVMValueRef {
-  unsafe {
-    let name = CString::new("divtmp").unwrap();
-    LLVMBuildUDiv(builder, lhs, rhs, name.as_ptr())
-  }
-}
-
-pub fn make_codegen_lit_int_expr(
-  context: LLVMContextRef,
-  int: &i64,
-) -> LLVMValueRef {
-  unsafe {
-    let int_ty = LLVMInt64TypeInContext(context);
-    LLVMConstInt(int_ty, *int as u64, 0)
-  }
-}
-
-pub fn make_codegen_lit_real_expr(
-  context: LLVMContextRef,
-  real: &f64,
-) -> LLVMValueRef {
-  unsafe {
-    // TODO: no-sense, not sure if we can mix float context with real constant
-    let real_ty = LLVMFloatTypeInContext(context);
-    LLVMConstReal(real_ty, *real)
-  }
 }

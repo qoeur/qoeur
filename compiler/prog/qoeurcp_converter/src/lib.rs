@@ -3,7 +3,6 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 // end
-
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 #![feature(decl_macro)]

@@ -3,5 +3,5 @@ source_filename = "basics"
 
 define i64 @main() {
 entry:
-  ret i64 9
+  ret i64 19
 }

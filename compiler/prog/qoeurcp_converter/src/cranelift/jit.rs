@@ -28,7 +28,10 @@ impl Jit {
     }
   }
 
-  pub fn compile(&mut self, stmts: Vec<Box<Stmt>>) -> Result<*const u8, String> {
+  pub fn compile(
+    &mut self,
+    stmts: Vec<Box<Stmt>>,
+  ) -> Result<*const u8, String> {
     let name = "basics";
 
     self.translate(vec![], String::new(), stmts)?;
@@ -118,7 +121,9 @@ impl Jit {
       module: &mut self.module,
     };
 
-    stmts.iter().for_each(|stmt| { trans.translate_stmt(stmt); });
+    stmts.iter().for_each(|stmt| {
+      trans.translate_stmt(stmt);
+    });
 
     let return_variable = trans.variables.get(&the_return).unwrap();
     let return_value = trans.builder.use_var(*return_variable);
@@ -178,7 +183,9 @@ impl<'a> FunctionTranslator<'a> {
   fn translate_lit_expr(&mut self, kind: &LitKind) -> Value {
     match kind {
       // LitKind::Real(ref value) => make_codegen_lit_real_expr(&mut self.builder, value),
-      LitKind::Int(ref value) => make_codegen_lit_int_expr(&mut self.builder, value),
+      LitKind::Int(ref value) => {
+        make_codegen_lit_int_expr(&mut self.builder, value)
+      }
       _ => unreachable!(),
     }
   }

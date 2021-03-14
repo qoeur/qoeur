@@ -26,12 +26,12 @@ fn main() {
   match compile_mode {
     CompileMode::Tokens => {
       qoeurcp::tokenize(&f);
-    },
+    }
     CompileMode::Ast => {
       qoeurcp::parse(&f);
-    },
+    }
     CompileMode::Jit => {
       qoeurcp::compile(&file_name, &f, &BackendKind::Llvm);
-    },
+    }
   }
 }
