@@ -3,7 +3,6 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 // end
-
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 #![feature(decl_macro)]
@@ -19,11 +18,7 @@ mod test;
 
 pub use self::interface::BackendKind::{self, *};
 
-pub fn compile(
-  file_name: &str,
-  input: &str,
-  mode: &BackendKind,
-) {
+pub fn compile(file_name: &str, input: &str, mode: &BackendKind) {
   match mode {
     Cranelift => cranelift::compile(file_name, input),
     Llvm => llvm::compile(file_name, input),

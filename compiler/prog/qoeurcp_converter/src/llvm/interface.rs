@@ -55,39 +55,36 @@ pub fn init_all_asm_printers() {
 }
 
 pub fn move_basic_block_before(
-  block: LLVMBasicBlockRef, 
+  block: LLVMBasicBlockRef,
   move_pos: LLVMBasicBlockRef,
 ) {
   unsafe { LLVMMoveBasicBlockBefore(block, move_pos) }
 }
 
 pub fn move_basic_block_after(
-  block: LLVMBasicBlockRef, 
+  block: LLVMBasicBlockRef,
   move_pos: LLVMBasicBlockRef,
 ) {
   unsafe { LLVMMoveBasicBlockAfter(block, move_pos) }
 }
 
 pub fn make_fun_ty(
-  ret_ty: LLVMTypeRef, 
-  param_ty: *mut LLVMTypeRef, 
-  param_count: c_uint, 
+  ret_ty: LLVMTypeRef,
+  param_ty: *mut LLVMTypeRef,
+  param_count: c_uint,
   is_var_arg: LLVMBool,
 ) -> LLVMTypeRef {
   unsafe { LLVMFunctionType(ret_ty, param_ty, param_count, is_var_arg) }
 }
 
 pub fn make_pointer_ty(
-  elmt_ty: LLVMTypeRef, 
+  elmt_ty: LLVMTypeRef,
   addr_space: c_uint,
 ) -> LLVMTypeRef {
   unsafe { LLVMPointerType(elmt_ty, addr_space) }
 }
 
-pub fn position_at_end(
-  builder: LLVMBuilderRef, 
-  block: LLVMBasicBlockRef,
-) {
+pub fn position_at_end(builder: LLVMBuilderRef, block: LLVMBasicBlockRef) {
   unsafe { LLVMPositionBuilderAtEnd(builder, block) }
 }
 
@@ -104,7 +101,7 @@ pub fn dispose_context(context: LLVMContextRef) {
 }
 
 pub fn dispose_message(msg: &str) {
-  unsafe { LLVMDisposeMessage(cstring_mut!(msg) ) }
+  unsafe { LLVMDisposeMessage(cstring_mut!(msg)) }
 }
 
 pub fn print_file_to(
@@ -112,7 +109,9 @@ pub fn print_file_to(
   name: &str,
   error: &str,
 ) -> LLVMBool {
-  unsafe { LLVMPrintModuleToFile(module, cstring!(name), cstring_mut_mut!(error)) }
+  unsafe {
+    LLVMPrintModuleToFile(module, cstring!(name), cstring_mut_mut!(error))
+  }
 }
 
 pub fn add_fun(
@@ -142,7 +141,9 @@ pub fn make_context_append_basic_block(
   context: LLVMContextRef,
   value: LLVMValueRef,
 ) -> LLVMBasicBlockRef {
-  unsafe { LLVMAppendBasicBlockInContext(context, value, cstring!("appendbtmp")) }
+  unsafe {
+    LLVMAppendBasicBlockInContext(context, value, cstring!("appendbtmp"))
+  }
 }
 
 pub fn make_context_insert_basic_block(
@@ -154,9 +155,7 @@ pub fn make_context_insert_basic_block(
   }
 }
 
-pub fn dispose_target_machine(
-  target_machine: LLVMTargetMachineRef,
-) {
+pub fn dispose_target_machine(target_machine: LLVMTargetMachineRef) {
   unsafe { LLVMDisposeTargetMachine(target_machine) }
 }
 
@@ -211,8 +210,8 @@ pub fn make_target_machine(
 }
 
 pub fn make_build_alloca(
-  builder: LLVMBuilderRef, 
-  ty: LLVMTypeRef, 
+  builder: LLVMBuilderRef,
+  ty: LLVMTypeRef,
   name: &str,
 ) -> LLVMValueRef {
   unsafe { LLVMBuildAlloca(builder, ty, cstring!(name)) }
@@ -220,11 +219,9 @@ pub fn make_build_alloca(
 
 pub fn make_build_block(
   builder: LLVMBuilderRef,
-  dest: LLVMBasicBlockRef
+  dest: LLVMBasicBlockRef,
 ) -> LLVMValueRef {
-  unsafe {
-    LLVMBuildBr(builder, dest)
-  }
+  unsafe { LLVMBuildBr(builder, dest) }
 }
 
 pub fn make_build_condition_block(
@@ -233,14 +230,12 @@ pub fn make_build_condition_block(
   consequence: LLVMBasicBlockRef,
   alternative: LLVMBasicBlockRef,
 ) -> LLVMValueRef {
-  unsafe {
-    LLVMBuildCondBr(builder, condition, consequence, alternative)
-  }
+  unsafe { LLVMBuildCondBr(builder, condition, consequence, alternative) }
 }
 
 pub fn make_build_global_string(
-  builder: LLVMBuilderRef, 
-  value: &str, 
+  builder: LLVMBuilderRef,
+  value: &str,
   name: &str,
 ) -> LLVMValueRef {
   unsafe { LLVMBuildGlobalString(builder, cstring!(value), cstring!(name)) }
@@ -344,11 +339,9 @@ pub fn make_build_ne_cmp(
 
 pub fn make_build_phi_value(
   builder: LLVMBuilderRef,
-  ty: LLVMTypeRef, 
+  ty: LLVMTypeRef,
 ) -> LLVMValueRef {
-  unsafe {
-    LLVMBuildPhi(builder, ty, cstring!("phitmp"))
-  }
+  unsafe { LLVMBuildPhi(builder, ty, cstring!("phitmp")) }
 }
 
 pub fn make_build_and(
@@ -384,22 +377,24 @@ pub fn make_build_call(
 }
 
 pub fn make_build_extract_elmt(
-  builder: LLVMBuilderRef, 
-  values: LLVMValueRef, 
-  index: LLVMValueRef, 
+  builder: LLVMBuilderRef,
+  values: LLVMValueRef,
+  index: LLVMValueRef,
   name: &str,
 ) -> LLVMValueRef {
   unsafe { LLVMBuildExtractElement(builder, values, index, cstring!(name)) }
 }
 
 pub fn make_build_insert_elmt(
-  builder: LLVMBuilderRef, 
-  arg_value: LLVMValueRef, 
-  elmt_value: LLVMValueRef, 
-  index: c_uint, 
+  builder: LLVMBuilderRef,
+  arg_value: LLVMValueRef,
+  elmt_value: LLVMValueRef,
+  index: c_uint,
   name: &str,
 ) -> LLVMValueRef {
-  unsafe { LLVMBuildInsertValue(builder, arg_value, elmt_value, index, cstring!(name)) }
+  unsafe {
+    LLVMBuildInsertValue(builder, arg_value, elmt_value, index, cstring!(name))
+  }
 }
 
 pub fn make_build_load(
@@ -551,12 +546,7 @@ pub fn make_context_struct_ty(
   tys: &mut Vec<LLVMTypeRef>,
 ) -> LLVMTypeRef {
   unsafe {
-    LLVMStructTypeInContext(
-      context,
-      tys.as_mut_ptr(),
-      tys.len() as c_uint,
-      0,
-    )
+    LLVMStructTypeInContext(context, tys.as_mut_ptr(), tys.len() as c_uint, 0)
   }
 }
 
