@@ -3,5 +3,5 @@ fun main = () {
   mut y: int = 8;
   y = y + x + 10;
 
-  print!("{}", y);
+  print("{}", y);
 }
