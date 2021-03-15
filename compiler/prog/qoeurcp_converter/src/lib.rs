@@ -3,6 +3,7 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 // end
+
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 #![feature(decl_macro)]
@@ -22,7 +23,7 @@ pub fn compile(
   file_name: &str,
   input: &str,
   mode: &BackendKind,
-) -> Result<(), String> {
+) {
   match mode {
     Cranelift => cranelift::compile(file_name, input),
     Llvm => llvm::compile(file_name, input),

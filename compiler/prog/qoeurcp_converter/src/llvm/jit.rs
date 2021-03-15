@@ -27,11 +27,9 @@ pub struct Jit {
 
 impl Drop for Jit {
   fn drop(&mut self) {
-    unsafe {
-      LLVMDisposeBuilder(self.builder);
-      LLVMDisposeModule(self.module);
-      LLVMContextDispose(self.context);
-    }
+    dispose_builder(self.builder);
+    dispose_module(self.module);
+    dispose_context(self.context);
   }
 }
 
@@ -43,9 +41,9 @@ impl Jit {
       let builder = LLVMCreateBuilderInContext(context);
 
       Self {
-        context: context,
-        builder: builder,
-        module: module,
+        context,
+        builder,
+        module,
         target: RefCell::new(ptr::null_mut()),
         target_machine: RefCell::new(ptr::null_mut()),
         target_data: RefCell::new(ptr::null_mut()),
