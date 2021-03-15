@@ -20,10 +20,10 @@ fn make_exe() {
     .expect("failed to execute process");
 }
 
-pub fn compile(file_name: &str, input: &str) -> Result<(), String> {
+pub fn compile(file_name: &str, input: &str) {
   let tree = qoeurcp_tokenizer::parse(input);
   let mut compiler = Jit::new();
   let _ = compiler.codegen(tree.ast.nodes);
 
-  Ok(make_exe())
+  make_exe()
 }

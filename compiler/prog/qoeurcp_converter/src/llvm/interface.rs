@@ -404,17 +404,6 @@ pub fn make_build_load(
   unsafe { LLVMBuildLoad(builder, pointer_value, cstring!("loadtmp")) }
 }
 
-// TODO: upgrade to the 80+ llvm version to use it
-/*
-pub fn make_build_load_with_ty(
-  builder: LLVMBuilderRef,
-  ty: LLVMTypeRef,
-  pointer_value: LLVMValueRef,
-) -> LLVMValueRef {
-  unsafe { LLVMBuildLoad2(builder, ty, pointer_value, cstring!("load2tmp")) }
-}
-*/
-
 pub fn make_build_store(
   builder: LLVMBuilderRef,
   value: LLVMValueRef,

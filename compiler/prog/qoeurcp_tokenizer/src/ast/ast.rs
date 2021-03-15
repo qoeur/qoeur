@@ -78,7 +78,7 @@ impl BinOpKind {
       TokenKind::Binary(BinaryKind::Ge) => BinOpKind::Ge,
       TokenKind::Binary(BinaryKind::Eq) => BinOpKind::Eq,
       TokenKind::Binary(BinaryKind::Ne) => BinOpKind::Ne,
-      tkn => unimplemented!("{:?} is not a operator", tkn),
+      tkn => unimplemented!("{} is not a operator", tkn),
     }
   }
 
