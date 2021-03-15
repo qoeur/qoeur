@@ -10,7 +10,8 @@
 
 **core**
 
-* [ ] tokenizer
+* [x] syntax from saturn
+* [x] tokenizer
 * [ ] typechecker
 * [ ] interpreter
 * [ ] bytecoder
@@ -38,6 +39,9 @@
 * [ ] unit testing included | `test`, `mock`, `bench` keywords
 * [ ] assertions | *for input validation `expect!`, `must!` and `should!`*
 * [ ] rewrite compiler in `qoeur`
+* [ ] no garbage collector
+* [ ] small binaries size
+* [ ] fast compilation time
 * [ ] ..
 
 **linter**
