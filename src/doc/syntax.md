@@ -63,20 +63,22 @@ use @std::mem::(alloc, free);
 
 ### functions
 
+types system (stil in research..)
+
 ```
 # functions declaration
-fun mul: (-> int | x: int, y: int) = (x, y) {
+fun mul: (x: int, y: int) = (x, y) {
   x * y
 }
 
 # closures
-fun sqrt: (-> int | x: int) = (x) -> x * x;
+fun sqrt: (\x -> int) = (x) -> x * x;
 
 # call
 sqrt(mul(1, 3));
 
-# currying
-fun curry: ((-> int | f: (->)) (-> | x: int) (-> | y: int)) = (f) {
+# currying research
+fun curry: (\ int * int -> \x -> \y -> x + y) = (f) {
   fun = (x) {
     fun = (y) {
       f(x, y)
@@ -84,10 +86,26 @@ fun curry: ((-> int | f: (->)) (-> | x: int) (-> | y: int)) = (f) {
   }
 }
 
+# currying research
+fun curry: (\int, int -> \x -> \y -> x + y) = (f) {
+  fun = (x) {
+    fun = (y) {
+      f(x, y)
+    }
+  }
+}
+
+# currying research
+fun curry: ((n: int) -> (int) -> int) = (n) {
+  (x) -> n + x
+}
+
 # call curried
 val curried: int = curry(mul);
 print!("{}", curried(1)(2));
 ```
+
+
 
 ### bindings
 
@@ -102,8 +120,9 @@ val greet: str = hello world +; # or maybe `hello ++ world` or `hello + world`
 
 **mutables**
 
+mutable variable via `mut` keyword
+
 ```
-# mutable variable via `mut` keyword
 mut y: int = 1;
 mut x: int = 1_000_000;
 mut z: real = 3.0;
@@ -112,7 +131,6 @@ mut z: real = 3.0;
 **multiple assignments**
 
 ```
-# multiple assignments
 val x y z : int = 0;
 mut x y z : real = 1.0;
 ```
@@ -259,6 +277,8 @@ enum Vec2 {
 
 ### goto
 
+still in research..
+
 ```
 \ok
 
@@ -267,12 +287,35 @@ enum Vec2 {
 goto \ok
 ```
 
+```
+@ok
+
+goto @ok
+```
+
+```
+ok:
+
+goto ok
+```
+
 ### macros
 
 the `$..` token for macro declaration
 
 ```
+# alternative 1
+!! token {
+  # do something
+}
+
+# alternative 2
 $.. token {
+  # do something
+}
+
+# alternative 3
+macro token {
   # do something
 }
 ```
@@ -339,7 +382,7 @@ bench tokenization_benchmark = () {
 `ext` call for `c` function     
 
 ```
-ext fun sqrt: int = (x: int);
+ext fun sqrt: (-> int | x: int);
 ```
 
 **javascript**
@@ -347,7 +390,7 @@ ext fun sqrt: int = (x: int);
 `exp` call for `javascript` function    
 
 ```
-exp fun cos: int = (x: int);
+exp fun cos: (-> int | x: int);
 ```
 
 **rust**
@@ -355,7 +398,7 @@ exp fun cos: int = (x: int);
 `mod` call for `rust` function  
 
 ```
-mod fun sqrt: int = (x: int);
+mod fun sqrt: (-> int | x: int);
 ```
 
 ### webassembly
